@@ -1,6 +1,7 @@
 {
     "version": "1.0.4",
     "name": "@navikt/familie-sprakvelger",
+    "type": "module",
     "author": "NAV",
     "homepage": "https://github.com/navikt/familie-felles-frontend#readme",
     "license": "MIT",
