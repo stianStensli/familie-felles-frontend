@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { useFelt, useSkjema, ok, FeltState, feil, Avhengigheter } from './src';
+import {
+    useFelt,
+    useSkjema,
+    ok,
+    FeltState,
+    feil,
+    Avhengigheter,
+    useArrayFelt,
+    ArrayFelt,
+} from './src';
 import { FamilieInput, FamilieKnapp } from '@navikt/familie-form-elements';
 import { Feiloppsummering, Select, SkjemaGruppe } from 'nav-frontend-skjema';
 import { RessursStatus } from '@navikt/familie-typer';
@@ -54,6 +63,10 @@ export const EnkeltSkjema = () => {
         avhengigheter: { land },
     });
 
+    const kommuner = useArrayFelt({
+        verdier: ['Oslo', 'Stavanger'],
+    });
+
     const skjemaType = useFelt<string | undefined>({
         verdi: undefined,
         valideringsfunksjon: (felt: FeltState<string | undefined>) =>
@@ -67,6 +80,7 @@ export const EnkeltSkjema = () => {
             navn: string;
             land: string;
             by: string;
+            kommuner: string;
         },
         string
     >({
@@ -74,6 +88,7 @@ export const EnkeltSkjema = () => {
             navn,
             land,
             by,
+            kommuner,
         },
         skjemanavn: 'enkelt-skjema',
     });

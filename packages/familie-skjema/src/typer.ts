@@ -77,7 +77,7 @@ export const defaultValidator = <Verdi>(felt: FeltState<Verdi>) => ({
 });
 
 export type FieldDictionary<Record extends unknown> = {
-    [Key in keyof Record]: Felt<Record[Key]>;
+    [Key in keyof Record]: Felt<Record[Key]> | Felt<Record[Key]>[];
 };
 
 export interface ISkjema<Felter, SkjemaRespons> {
