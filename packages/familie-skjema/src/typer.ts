@@ -4,6 +4,7 @@ import { Ressurs } from '@navikt/familie-typer';
 
 export interface FeltState<Verdi> {
     feilmelding: ReactNode;
+    id: string;
     valider: ValiderFelt<Verdi>;
     valideringsstatus: Valideringsstatus;
     verdi: Verdi;

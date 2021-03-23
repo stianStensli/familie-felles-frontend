@@ -29,44 +29,52 @@ export interface FeltConfig<Verdi> {
     feltId?: string;
     skalFeltetVises?: (avhengigheter: Avhengigheter) => boolean;
     valideringsfunksjon?: ValiderFelt<Verdi>;
-    verdi: Verdi;
+    verdier: Verdi[];
 }
 
-export function useFelt<Verdi = string>({
+export function useArrayFelt<Verdi = string>({
     avhengigheter = {},
     feltId,
     skalFeltetVises,
     valideringsfunksjon,
-    verdi,
-}: FeltConfig<Verdi>): Felt<Verdi> {
-    const [initialFeltState] = useState({
-        feilmelding: '',
-        id: feltId ? feltId : genererId(),
-        valider: valideringsfunksjon ? valideringsfunksjon : defaultValidator,
-        valideringsstatus: Valideringsstatus.IKKE_VALIDERT,
-        verdi,
-    });
+    verdier,
+}: FeltConfig<Verdi>): Felt<Verdi>[] {
+    const initialFeltState: FeltState<Verdi>[] = verdier.map(
+        (verdi: Verdi): FeltState<Verdi> => ({
+            feilmelding: '',
+            id: feltId ? feltId : genererId(),
+            valider: valideringsfunksjon ? valideringsfunksjon : defaultValidator,
+            valideringsstatus: Valideringsstatus.IKKE_VALIDERT,
+            verdi,
+        }),
+    );
 
-    const [feltState, settFeltState] = useState<FeltState<Verdi>>(initialFeltState);
+    const [felterState, settFelterState] = useState<FeltState<Verdi>[]>(initialFeltState);
     const [erSynlig, settErSynlig] = useState(
         skalFeltetVises ? skalFeltetVises(avhengigheter) : true,
     );
 
     const nullstill = () => {
-        settFeltState(initialFeltState);
+        settFelterState(initialFeltState);
     };
 
-    const validerOgSettFelt = (verdi: Verdi = feltState.verdi) => {
-        const validertFelt = feltState.valider(
-            {
-                ...feltState,
-                verdi,
-            },
-            avhengigheter,
-        );
+    const validerOgSettFelt = (verdi: Verdi, id: string) => {
+        const validertFelter = felterState.map((feltState: FeltState<Verdi>) => {
+            if (id === feltState.id) {
+                return feltState.valider(
+                    {
+                        ...feltState,
+                        verdi,
+                    },
+                    avhengigheter,
+                );
+            } else {
+                return feltState;
+            }
+        });
 
-        if (!deepEqual(feltState, validertFelt)) {
-            settFeltState(validertFelt);
+        if (!deepEqual(felterState, validertFelter)) {
+            settFelterState(validertFelter);
         }
     };
 
@@ -88,7 +96,7 @@ export function useFelt<Verdi = string>({
      */
     useEffect(() => {
         if (skalFeltetVises) {
-            if (feltState.valideringsstatus !== Valideringsstatus.IKKE_VALIDERT) {
+            if (felterState.valideringsstatus !== Valideringsstatus.IKKE_VALIDERT) {
                 nullstill();
             }
             settErSynlig(skalFeltetVises(avhengigheter));
@@ -103,31 +111,32 @@ export function useFelt<Verdi = string>({
 
             validerOgSettFelt(normalisertVerdi as Verdi);
         },
-        [validerOgSettFelt, settFeltState],
+        [validerOgSettFelt, settFelterState],
     );
 
     const hentNavInputProps = useCallback(
         (visFeilmelding: boolean): NavInputProps<Verdi> => ({
-            feil: visFeilmelding ? feltState.feilmelding : undefined,
-            id: feltState.id,
+            feil: visFeilmelding ? felterState.feilmelding : undefined,
+            id,
             onChange,
-            value: feltState.verdi,
+            value: felterState.verdi,
         }),
-        [validerOgSettFelt, settFeltState],
+        [validerOgSettFelt, settFelterState],
     );
 
     const hentNavBaseSkjemaProps = useCallback(
         (visFeilmelding: boolean): NavBaseSkjemaProps<Verdi> => ({
-            feil: visFeilmelding ? feltState.feilmelding : undefined,
-            id: feltState.id,
-            value: feltState.verdi,
+            feil: visFeilmelding ? felterState.feilmelding : undefined,
+            id,
+            value: felterState.verdi,
         }),
-        [validerOgSettFelt, settFeltState],
+        [validerOgSettFelt, settFelterState],
     );
 
     return useMemo(
         () => ({
-            ...feltState,
+            ...felterState,
+            id,
             hentNavInputProps,
             hentNavBaseSkjemaProps,
             nullstill,
@@ -135,6 +144,6 @@ export function useFelt<Verdi = string>({
             onChange,
             validerOgSettFelt,
         }),
-        [feltState, hentNavInputProps, validerOgSettFelt, nullstill, onChange],
+        [felterState, hentNavInputProps, validerOgSettFelt, nullstill, onChange],
     );
 }
